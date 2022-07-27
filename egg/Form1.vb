@@ -11,6 +11,7 @@ Public Class Form1
         Dim con As New SqlConnection
     Dim cmd As New SqlCommand
     Dim conn As New DBConnection
+    Private newcmd As Object
 
     Private Sub Button4_Click(sender As Object, e As EventArgs) Handles btnSave.Click
 
@@ -22,16 +23,16 @@ Public Class Form1
             Dim getDate As Date = Date.Now
             Dim addDate As String = getDate.ToString(" yyyy-MM-dd ")
             Dim query As String
-            query = "INSERT into egg values ('" & 1 & "','" & TextSANo.Text & "','" & addDate & "','" & ComboCompany.Text & "','" & ComboLocation.Text & "','" & TextRemark.Text & "','" & ComboEggCategory.Text & "','" & TextQty.Text & "')"
+            query = "INSERT into egg values ((Select ISNULL(MAX(SANo)+1,1) From egg),'" & addDate & "','" & ComboCompany.Text & "','" & ComboLocation.Text & "','" & TextRemark.Text & "','" & ComboEggCategory.Text & "','" & TextQty.Text & "')"
             cmd = New SqlCommand(query, con)
             reader = cmd.ExecuteReader
             MsgBox("Department added successfully")
-
             con.Close()
+
         Catch ex As Exception
             MsgBox(ex.Message)
         Finally
-            TextSANo.Text = String.Empty
+            'TextSANo.Text = String.Empty
             ComboCompany.Text = String.Empty
             ComboLocation.Text = String.Empty
             TextRemark.Text = String.Empty
@@ -42,8 +43,9 @@ Public Class Form1
         End Try
     End Sub
 
-
-
+    Private Function SANo() As Object
+        Throw New NotImplementedException()
+    End Function
 
     Private Sub data()
             Dim query As String = "SELECT * FROM egg"
@@ -112,8 +114,8 @@ Public Class Form1
 
         'Date Button-------------------
         Private Sub TextBox1_TextChanged(sender As Object, e As EventArgs)
-            Dim todaysdate As String = String.Format("{0:dd/MM/yyyy}", DateTime.Now)
-            dpt.Text = todaysdate
+        Dim todaysdate As String = String.Format("{dd/MM/yyyy}", DateTime.Now)
+        dpt.Text = todaysdate
         End Sub
 
    
