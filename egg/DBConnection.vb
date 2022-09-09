@@ -28,7 +28,7 @@ Public Class DBConnection
     End Sub
 
     Shared Sub connect()
-        cn = New SqlConnection("Data Source=LAPTOP-DCJ10BPM;Initial Catalog=Egg;Integrated Security=True")
+        cn = New SqlConnection("Data Source=LAPTOP-DCJ10BPM;Initial Catalog=Egg_Stocks;Integrated Security=True")
     End Sub
 
 
@@ -103,7 +103,7 @@ Public Class DBConnection
             Dim cmd As New SqlCommand
             cmd.CommandText = query
             cmd.Transaction = sqlTrans
-            ''cmd.Connection = connect()
+            cmd.Connection = cn
             AddParameters(param)
             Dim DAdapter As New SqlDataAdapter
             DAdapter.SelectCommand = cmd
