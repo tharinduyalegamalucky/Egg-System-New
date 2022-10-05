@@ -1,7 +1,7 @@
 Imports System.Data.SqlClient
 Imports DAL
 
-Public Class Form1
+Public Class Form2
     Dim DT As DataTable
     Dim DS As DataSet
     Dim query As String
@@ -9,9 +9,6 @@ Public Class Form1
 
     Public DAL_Obj As New DAL.DBAccess
     Public Property SaveButtonDetails As Object
-
-
-
 
     'Egg Category Details---------
     'Combo Company Loading Details--------
@@ -30,8 +27,7 @@ Public Class Form1
             ComboEggCategory.AutoCompleteCustomSource.Add(DS.Tables(0).Rows(i).Item(0).ToString)
         Next
 
-        ''''' combo load'''
-        ' Dim SqlString As String
+        ' combo load-----------
 
         DS = DAL_Obj.GetExcTo_DataSet("Com_Details", Nothing)
 
@@ -72,7 +68,9 @@ Public Class Form1
     'Add Button ----------
     'EggCategory DataBase Details
     Private Sub btnAdd_Click(sender As Object, e As EventArgs) Handles btnAdd.Click
+
         ' Message Box-------
+
         If TextId.Text = "" Then
             MessageBox.Show("Not Selected the User ID")
             Exit Sub
@@ -113,69 +111,111 @@ Public Class Form1
                 End If
             Next
         End If
-        Dim SQLParam() As System.Data.SqlClient.SqlParameter
-        Dim SQLComm As System.Data.SqlClient.SqlCommand
 
-
-        ReDim Preserve SQLParam(0)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@SA_No1", SqlDbType.Int, 0, 1, "out")
-        ReDim Preserve SQLParam(1)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Cat_Id", SqlDbType.Int, Lbl_Egg_Id.Text, 10, "in")
-        ReDim Preserve SQLParam(2)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Qty", SqlDbType.Int, TextQty.Text, 10, "in")
-        ReDim Preserve SQLParam(3)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@User_Id", SqlDbType.Int, TextId.Text, 10, "in")
-
-        Try
-            SQLComm = DAL_Obj.GetExcTo_Cmd("addpro", SQLParam)
-            TextSANo.Text = SQLComm.Parameters("@SA_No1").Value
-        Catch ex As Exception
-            MsgBox(ex.Message)
-        End Try
-
-
-        DataGridView1.Rows.Add(ComboEggCategory.Text, TextQty.Text)
-
-
-
+        DataGridView1.Rows.Add(ComboEggCategory.Text, Lbl_Egg_Id.Text, TextQty.Text)
 
     End Sub
-
 
     'Save Btn--------
     Private Sub btnSave_Click(sender As Object, e As EventArgs) Handles btnSave.Click
 
-        Dim SQLParam() As System.Data.SqlClient.SqlParameter
-        Dim SQLComm As System.Data.SqlClient.SqlCommand
+        DAL_Obj.BeginTran()
 
-        ReDim Preserve SQLParam(0)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@SA_No1", SqlDbType.Int, 0, 1, "out")
-        ReDim Preserve SQLParam(1)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Loc_Id", SqlDbType.Int, Lbl_Loc_Id.Text, 10, "in")
-        ReDim Preserve SQLParam(2)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Com_Id", SqlDbType.Int, lbl_com_id.Text, 10, "in")
-        ReDim Preserve SQLParam(3)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Remark", SqlDbType.VarChar, TextRemark.Text, 10, "in")
-        ReDim Preserve SQLParam(4)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@SysDateTime", SqlDbType.DateTime, dpt.Text, 10, "in")
-        ReDim Preserve SQLParam(5)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Egg_Category_Id", SqlDbType.Int, Lbl_Egg_Id.Text, 10, "in")
-        ReDim Preserve SQLParam(6)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Qty", SqlDbType.Int, TextQty.Text, 10, "in")
-        ReDim Preserve SQLParam(7)
-        SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@User_Id", SqlDbType.Int, TextId.Text, 10, "in")
+        If (Save_HEADER(lbl_com_id.Text, Lbl_Loc_Id.Text, TextRemark.Text, TextId.Text, dpt.Text)) = False Then
+            DAL_Obj.RollbackTran()
+            MsgBox("record not saved")
+            Exit Sub
+        End If
 
-        Try
-            SQLComm = DAL_Obj.GetExcTo_Cmd("insertpro", SQLParam)
-            TextSANo.Text = SQLComm.Parameters("@SA_No1").Value
-            MessageBox.Show("Successfully Data Addedd.....")
-        Catch ex As Exception
-            MsgBox(ex.Message)
-        End Try
+        For i As Integer = 0 To DataGridView1.Rows.Count - 1
+            If DataGridView1.Rows(i).Cells(1).Value <> "" Then
+                If (Save_detals(TextSANo.Text, DataGridView1.Rows(i).Cells(1).Value, DataGridView1.Rows(i).Cells(2).Value)) = False Then
+                    DAL_Obj.RollbackTran()
+                    MsgBox("record not saved")
+                    Exit Sub
+                End If
+            End If
 
+
+        Next
+
+        MsgBox("record saved")
+
+
+        DAL_Obj.CommitTran()
 
     End Sub
+    Public Function Save_HEADER(ByVal com_id As Integer, ByVal loc_id As Integer, ByVal remark As String, ByVal user_id As Integer, ByVal dateD As String) As Boolean
+        Try
 
+
+            Dim SQLParam() As System.Data.SqlClient.SqlParameter
+            Dim SQLComm As System.Data.SqlClient.SqlCommand
+
+            ReDim Preserve SQLParam(0)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@SA_No1", SqlDbType.Int, 0, 1, "out")
+            ReDim Preserve SQLParam(1)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Loc_Id", SqlDbType.Int, loc_id, 10, "in")
+            ReDim Preserve SQLParam(2)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Com_Id", SqlDbType.Int, com_id, 10, "in")
+            ReDim Preserve SQLParam(3)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Remark", SqlDbType.VarChar, remark, 10, "in")
+            ReDim Preserve SQLParam(4)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@SysDateTime", SqlDbType.DateTime, dateD, 10, "in")
+            ReDim Preserve SQLParam(5)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@User_Id", SqlDbType.Int, user_id, 10, "in")
+            ReDim Preserve SQLParam(6)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@RET", SqlDbType.Int, 0, 1, "out")
+
+
+            SQLComm = DAL_Obj.GetExcTo_Cmd("insertpro", SQLParam)
+
+            If (SQLComm.Parameters("@RET").Value = 1) Then
+                Return False
+            Else
+                TextSANo.Text = SQLComm.Parameters("@SA_No1").Value
+                Return True
+            End If
+
+            ' MessageBox.Show("Successfully Data Addedd.....")
+
+        Catch ex As Exception
+            MsgBox(ex.Message)
+            Return False
+        End Try
+    End Function
+    Public Function Save_detals(ByVal SA_no As Integer, ByVal cat_id As Integer, ByVal qty As Integer) As Boolean
+        Try
+
+
+            Dim SQLParam() As System.Data.SqlClient.SqlParameter
+            Dim SQLComm As System.Data.SqlClient.SqlCommand
+
+
+            ReDim Preserve SQLParam(0)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@SA_No1", SqlDbType.Int, SA_no, 20, "in")
+            ReDim Preserve SQLParam(1)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Cat_Id", SqlDbType.Int, cat_id, 10, "in")
+            ReDim Preserve SQLParam(2)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@Qty", SqlDbType.Int, qty, 10, "in")
+            ReDim Preserve SQLParam(3)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@User_Id", SqlDbType.Int, TextId.Text, 10, "in")
+            ReDim Preserve SQLParam(4)
+            SQLParam(UBound(SQLParam)) = DAL_Obj.Param("@RET", SqlDbType.Int, 0, 10, "out")
+
+            SQLComm = DAL_Obj.GetExcTo_Cmd("addpro", SQLParam)
+
+            If (SQLComm.Parameters("@RET").Value = 1) Then
+                Return False
+            Else
+                Return True
+            End If
+
+        Catch ex As Exception
+            MsgBox(ex.Message)
+            Return False
+        End Try
+    End Function
 
 
     'All Clear Details------
@@ -213,5 +253,6 @@ Public Class Form1
             Lbl_Egg_Id.Text = ComboEggCategory.AutoCompleteCustomSource(ComboEggCategory.SelectedIndex)
         End If
     End Sub
+
 
 End Class
